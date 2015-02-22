@@ -1,0 +1,16 @@
+{
+    "contents" : "# Load feature names\nfeatures <- read.table('UCI HAR Dataset/features.txt', header=FALSE, col.names=c('id', 'featureName'), colClasses = c('numeric', 'character'))\n\nloadData <- function(datatype) {\n\tdata_file <- paste('UCI HAR Dataset/', datatype, '/X_', datatype, '.txt', sep='')\n\tlabel_file <- paste('UCI HAR Dataset/', datatype, '/Y_', datatype, '.txt', sep='')  \n\tsubject_file <- paste('UCI HAR Dataset/', datatype, '/subject_', datatype, '.txt', sep='')\n\tresult <- read.table(data_file, header=FALSE, col.names=features$featureName, colClasses = rep(\"numeric\", nrow(features)))\n\tresult_label <- read.table(label_file, header=FALSE, col.names=c('label'), colClasses = c('numeric'))\n\tresult_subject <- read.table(subject_file, header=FALSE, col.names=c('subject'), colClasses = c('numeric') )\n\tresult$label <- result_label$label\n\tresult$subject <- result_subject$subject\n\tresult  \n}\n\ntrain <- loadData('train')\ntest <- loadData('test')\n\nalldata <- rbind(train, test)\n\nrequiredFeatures <- grepl(\"mean\\\\(\\\\)\",features$featureName) | grepl(\"std\\\\(\\\\)\",features$featureName )\nrequiredCols <- features[requiredFeatures,]$id\nrequiredData <- alldata[, requiredCols]\n\nrequiredData$label <- alldata$label\nrequiredData$subject <- alldata$subject\n\nactivity_labels <- read.table('UCI HAR Dataset/activity_labels.txt', header=FALSE, col.names=c('id', 'activity_label'), colClasses = c('numeric', 'character'))\nrequiredData <- merge(requiredData, activity_labels, by.x = 'label', by.y = 'id')\nrequiredData <- requiredData[, !(names(requiredData) %in% c('label'))]\n\nlibrary(reshape2)\n\nmeltData <- melt(requiredData, id = c('subject', 'activity_label'))\nresult <- dcast(meltData, subject + activity_label ~ variable, mean)\n\naddPrefix <- function(x, prefix) {\n\tpaste(prefix, x, sep=\"\")\n}\n\nheaderNames <- gsub(\"\\\\.+\", \".\", names(result))\nheaderNames <- gsub(\"\\\\.$\", \"\", headerNames)\nheaderNames <- sapply(headerNames, addPrefix, \"mean.of.\")\nheaderNames[1] <- 'subject'\nheaderNames[2] <- 'activity'\n\nnames(result) <- headerNames\nwrite.table(result, \"tidy-data-set.txt\", row.names=FALSE)\n",
+    "created" : 1424626639099.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "463658637",
+    "id" : "C9C71B94",
+    "lastKnownWriteTime" : 1424627167,
+    "path" : "~/Getting-and-Cleaning-Data-Course-Project/run_analysis.R",
+    "project_path" : "run_analysis.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
